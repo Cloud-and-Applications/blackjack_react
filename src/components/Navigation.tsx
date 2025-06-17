@@ -38,7 +38,7 @@ const Navigation: React.FC = () => {
                             <span className="text-2xl">🎰</span>
                         </div>
                         <div>
-                            <h1 className="text-casino-gold font-bold text-2xl tracking-wide">ROYAL CASINO</h1>
+                            <h1 className="text-casino-gold font-bold text-2xl tracking-wide">Hello ROYAL CASINO</h1>
                             <p className="text-gray-400 text-sm">Premium Gaming Experience</p>
                         </div>
                     </Link>

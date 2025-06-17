@@ -5,7 +5,7 @@ Parameters:
   BucketName:
     Type: String
     Description: Name for the S3 bucket
-    Default: blackjack-frontend-app
+    Default: react-app-blackjack-bucket
 
 Resources:
   # S3 Bucket for storing the React application
@@ -13,11 +13,27 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub "${BucketName}-${AWS::AccountId}-${AWS::Region}"
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
       PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+
+  # S3 Bucket Policy for public read access
+  ReactAppBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ReactAppBucket
+      PolicyDocument:
+        Statement:
+          - Sid: PublicReadGetObject
+            Effect: Allow
+            Principal: "*"
+            Action: "s3:GetObject"
+            Resource: !Sub "${ReactAppBucket}/*"
 
   # CloudFront Origin Access Identity
   CloudFrontOriginAccessIdentity:
@@ -25,20 +41,6 @@ Resources:
     Properties:
       CloudFrontOriginAccessIdentityConfig:
         Comment: !Sub "OAI for ${ReactAppBucket}"
-
-  # S3 Bucket Policy for CloudFront OAI access only
-  ReactAppBucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket: !Ref ReactAppBucket
-      PolicyDocument:
-        Statement:
-          - Sid: AllowCloudFrontAccess
-            Effect: Allow
-            Principal:
-              AWS: !Sub "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${CloudFrontOriginAccessIdentity}"
-            Action: "s3:GetObject"
-            Resource: !Sub "${ReactAppBucket}/*"
 
   # CloudFront Distribution
   CloudFrontDistribution:
@@ -80,6 +82,12 @@ Outputs:
     Value: !Ref ReactAppBucket
     Export:
       Name: !Sub "${AWS::StackName}-BucketName"
+
+  BucketWebsiteURL:
+    Description: "URL of the S3 bucket website"
+    Value: !GetAtt ReactAppBucket.WebsiteURL
+    Export:
+      Name: !Sub "${AWS::StackName}-BucketWebsiteURL"
 
   CloudFrontDistributionId:
     Description: "CloudFront Distribution ID"
